@@ -39,39 +39,77 @@
   → Phi is stronger in pure reasoning, but too slow and wordy for watch use-case  
   → We will use Gemma as base for RAG prototype
 
-## 2. Minimal RAG Prototype (first working version)
+## 2. Minimal RAG Pipeline – Complete Step-by-Step (Reproducible)
 
-**Objective:** Combine retrieved personal/watch knowledge with Gemma generation to answer questions accurately without hallucination.
+Anyone can copy these exact steps and get the same offline RAG smartwatch assistant running.
 
-**Implementation details:**
-- Embedding model: `all-MiniLM-L6-v2` (~80 MB)
-- Vector store: FAISS (in-memory, very fast)
-- LLM backend: LM Studio local server (Gemma-2-2B-it loaded)
-- Documents: stored in separate file `watch_knowledge.txt` (easy to edit)
-- Interactive mode: real-time question input (type and get answer)
+### Folder Structure (create this)
 
-**Sample documents added (watch_knowledge.txt):**
-- Daily step goal: 10,000 steps.
-- You have taken 4,832 steps today so far.
-- Normal resting heart rate: 60–100 BPM.
-- Current heart rate: 72 BPM (normal).
-- Battery level: 42%. Turn off always-on display below 30%.
-- Meeting reminder: Team sync at 3:00 PM today.
-- Sleep last night: 7 hours 12 minutes.
-- Photosynthesis explanation (simple).
-- Python factorial code snippet.
-- Hindi & French translation examples.
+```text
+D:\bluvern\slm
+├── models/                          ← all .gguf files here
+├── watch_knowledge.txt              ← your personal + knowledge data
+├── rag_prototype.py                 ← main script
+└── rag_env/                         ← virtual environment
+```text
 
-**Early test results (pure RAG + Gemma):**
-- Personal questions → now answered correctly from documents
-- Out-of-scope questions → correctly says "I don't have that information"
-- Explanations / math / code → still excellent (Gemma strength)
-- No hallucinations on missing data
+**Step 1:** Prepare Documents (very important)
+Create file: `D:\bluvern\slm\watch_knowledge.txt`
 
-**Current prototype status:**
-- Working end-to-end
-- RAM usage during RAG: ~300–450 MB (embedding + index + model)
-- Ready for next improvements: better prompt, conversation memory, more documents
+```txt
+Daily step goal: 10,000 steps.
+You have taken 4,832 steps today so far.
+Normal resting heart rate: 60–100 BPM.
+Current heart rate: 72 BPM (normal).
+Battery level: 42%. Turn off always-on display below 30%.
+Meeting reminder: Team sync at 3:00 PM today.
+Sleep last night: 7 hours 12 minutes (good quality).
+Drink 2–3 liters of water daily.
+Photosynthesis: Plants use sunlight, water and CO2 to make sugar and release oxygen.
+Python factorial: def factorial(n): return 1 if n == 0 else n * factorial(n-1)
+x + 3 = 10 → x = 7
+Good morning, how did you sleep? → Hindi: सुप्रभात, आपने कैसे सोया?
+
+Step 2: Start LM Studio + Gemma
+
+Open LM Studio
+Load gemma-2-2b-it-Q4_K_M.gguf
+Settings: Context = 2048, Temperature = 0.7
+Go to Local Server tab → click Start Server (port 1234)
+
+Step 3: Create Virtual Environment & Install Packages
+PowerShellcd D:\bluvern\slm
+python -m venv rag_env
+rag_env\Scripts\activate
+
+pip install sentence-transformers faiss-cpu numpy openai
+
+Step 4: Create the RAG Script
+Create file: D:\bluvern\slm\rag_prototype.py
+(Paste the full script I gave you earlier – the interactive version)
+
+Step 5: Run the RAG Assistant
+PowerShellrag_env\Scripts\activate
+python rag_prototype.py
+You will see:
+textLoaded 13 knowledge entries...
+RAG index ready!
+Smartwatch RAG Assistant is ready! (type 'exit' to stop)
+
+You:
+Now type any question in real time — it will use RAG + Gemma to answer.
+Current Performance (as of 06 Feb 2026)
+
+RAM during RAG: ~300–450 MB
+Personal questions → answered correctly from documents
+Unknown questions → correctly says “I don’t have that information”
+Speed: acceptable on laptop (will be much faster on watch NPU)
+
+How to Extend It Later
+
+Add more lines to watch_knowledge.txt → restart the script
+Change prompt in rag_prototype.py for shorter/friendlier answers
+Add conversation memory (next step)
 
 ## 3. Next Steps (Day 3 & beyond)
 - Refine prompt → shorter, more watch-like answers
@@ -83,5 +121,3 @@
 - Create benchmark table: pure model vs RAG vs cloud (GPT-4o / Grok)
 
 **Last updated:** 05 February 2026  
-**Author:** MONIHA  
-**Project repo:** AI-Research-Logs / Slm_research
