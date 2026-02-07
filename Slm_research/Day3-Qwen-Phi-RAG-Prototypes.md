@@ -33,11 +33,14 @@ Good morning, how did you sleep? → Hindi: सुप्रभात, आपन�
 ### Option A: Qwen3-0.6B RAG Prototype
 ```text
 Script: rag_prototype_qwen.py
+```
+---
 
 Run:
 ```powershell
 venv\Scripts\activate
 python rag_prototype_qwen.py
+```
 
 ```text
 Sample Output:
@@ -53,13 +56,17 @@ Watch: I don't have that information.
 
 ```text
 Script: rag_prototype_phi.py
-Run:
 ```
+---
+
+Run:
+
 ```powershell
 venv\Scripts\activate
 python rag_prototype_phi.py
-
 ```
+---
+
 **Sample Output:**
 ```text
 You: How many steps have I taken today?
