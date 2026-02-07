@@ -13,6 +13,7 @@
    pip install sentence-transformers faiss-cpu numpy openai
 
 **Step 1: Create watch_knowledge.txt**
+```text
 File path: D:\bluvern\slm\watch_knowledge.txt
 Daily step goal: 10,000 steps.
 You have taken 4,832 steps today so far.
@@ -26,30 +27,42 @@ Photosynthesis: Plants use sunlight, water and CO2 to make sugar and release oxy
 Python factorial: def factorial(n): return 1 if n == 0 else n * factorial(n-1)
 x + 3 = 10 → x = 7
 Good morning, how did you sleep? → Hindi: सुप्रभात, आपने कैसे सोया?
+```
+--- 
 
-**Option A: Qwen3-0.6B RAG Prototype**
-
+### Option A: Qwen3-0.6B RAG Prototype
+```text
 Script: rag_prototype_qwen.py
+
 Run:
+```powershell
 venv\Scripts\activate
 python rag_prototype_qwen.py
 
+```text
 Sample Output:
 You: How many steps have I taken today?
 Watch: You have taken 4,832 steps today so far.
 
 You: What is the weather today?
 Watch: I don't have that information.
+```
+---
 
-**Option B: Phi-3.5-mini-instruct RAG Prototype**
+### Option B: Phi-3.5-mini-instruct RAG Prototype
 
+```text
 Script: rag_prototype_phi.py
 Run:
+```
+```powershell
 venv\Scripts\activate
 python rag_prototype_phi.py
 
-Sample Output:
-textYou: How many steps have I taken today?
+```
+**Sample Output:**
+```text
+You: How many steps have I taken today?
 Watch: 4,832 steps
 
 You: What is my current heart rate?
@@ -57,22 +70,27 @@ Watch: 72 BPM
 
 You: Should I turn on always-on display at 25% battery?
 Watch: No, to conserve power when the battery is below optimal levels.
+``` 
+---
 
-**Comparison Table (07 Feb 2026)**
+### Comparison Table (07 Feb 2026)
 
-Model,Peak RAM,Speed (laptop),Personal Questions,Answer Style,Hallucination,Recommendation
-Qwen3-0.6B + RAG,~400 MB,Fast,Good,Very short & direct,Very low,Best for smartwatch
-Phi-3.5-mini + RAG,~2.6 GB,Slow,Very good,More detailed,Very low,"Stronger reasoning, heavier"
+| Model + RAG              | Peak RAM | Speed (laptop) | Personal Questions | Answer Length | Hallucination | Final Verdict for Watch |
+|--------------------------|----------|----------------|--------------------|---------------|---------------|-------------------------|
+| Qwen3-0.6B + RAG         | ~400 MB  | Fast           | Good & direct      | Very short    | Very low      | **Best choice**         |
+| Phi-3.5-mini + RAG       | ~2.6 GB  | Slow           | Very good          | Based on the prompt      | Very low      | Strong but heavy        |
 
-Current Decision:
+**Current Decision:**
 Qwen3-0.6B + RAG is the most practical choice for actual smartwatch deployment (lowest RAM + fastest).
 
 **Next Steps (Day 4 & beyond)**
-
+```text
 Add conversation history (memory)
 Make answers even shorter & more watch-friendly
 Expand knowledge base
 Test with real user data
 Explore watch deployment (ExecuTorch, MLC-LLM)
+```
+---
 
 Last updated: 07 February 2026
