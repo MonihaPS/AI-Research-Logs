@@ -114,18 +114,21 @@ My current working values (approximate for Arducam IMX708 Wide at ~1296×972):
 1001.5 0.0 648.0 0.0 1001.5 486.0 0.0 0.0 1.0
 0.063
 ```
----
 
 **Format explanation:**
 
 Line 1: fx 0 cx 0 fy cy 0 0 1 (left camera intrinsics)
+
 Line 2: Baseline in meters (distance between lens centers)
 
 **For best accuracy** — I recommend full stereo calibration:
 
 1.Print 7×10 chessboard pattern
+
 2.Capture 20–30 simultaneous left/right pairs
+
 3.Run OpenCV stereoCalibrate to get exact values
+
 4.Update camera_params.txt
 
 ---
@@ -133,13 +136,17 @@ Line 2: Baseline in meters (distance between lens centers)
 ## Outputs & How to View Them
 
 **vis.png** → Original image + disparity visualization (brighter = closer)
+
 **cloud.ply** → Raw 3D point cloud
+
 **cloud_denoise.ply** → Cleaner version after denoising
+
 
 **Best viewers:**
 
-*MeshLab* – lightweight & excellent for point clouds
-*CloudCompare* – powerful analysis tools
+**MeshLab** – lightweight & excellent for point clouds
+
+**CloudCompare** – powerful analysis tools
 
 ---
 
