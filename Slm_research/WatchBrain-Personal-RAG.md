@@ -22,7 +22,7 @@ No Google login, no cloud, no hallucinations, fully per-user (User 01, User 02 �
 ![RAG Pipeline Diagram](https://miro.medium.com/1*ayogAmoUrJ907xozhHIJ6w.png)  
 (Source: Medium – RAG Pipeline)
 
-![Simple RAG Flow](https://i.imgur.com/vACLc.png)  
+![Simple RAG Flow](https://assets.zilliz.com/Figure_1_How_RAG_works_24108cefb1.png)  
 (Source: Designveloper – Chunk → Embed → Vector Store → LLM)
 
 ![Smartwatch Personal AI Hub](https://media.licdn.com/dms/image/v2/D4D22AQE0v2iE0fGf_A/feedshare-shrink_2048_1536/feedshare-shrink_2048_1536/0/1725... )  
