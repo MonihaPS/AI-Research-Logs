@@ -74,7 +74,7 @@ Step 2: Start LM Studio + Gemma
 
 Open LM Studio
 Load gemma-2-2b-it-Q4_K_M.gguf
-Settings: Context = 2048, Temperature = 0.7
+Settings: Context = 2048, Temperature = 0.8
 Go to Local Server tab → click Start Server (port 1234)
 
 Step 3: Create Virtual Environment & Install Packages
