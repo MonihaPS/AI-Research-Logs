@@ -274,10 +274,11 @@ pip install hydra-core opencv-python pandas matplotlib seaborn tqdm pillow
 
 ## Step 3: Deploy DINOv2 as the Base Vision Model
 DINOv2 is the shared backbone for both depth and segmentation. Deploy it standalone to test feature extraction.
+https://github.com/facebookresearch/dinov2
 
 ### Install DINOv2
 ```powershell
-pip install git+https://github.com/facebookresearch/dinov2.git
+pip install git+https://github.com/facebookresearch/dinov2.git 
 ```
 
 ### Download DINOv2 checkpoint
@@ -420,3 +421,4 @@ Use metrics like IoU for masks and RMSE for depth.
 - **Size:** 5K–50K per task, 5K for fusion.
 - **Tools:** LabelStudio for manual labels, pseudo-labeling from pre-trained models.
 - **Storage:** 100–500 GB (images + masks/depth).
+
