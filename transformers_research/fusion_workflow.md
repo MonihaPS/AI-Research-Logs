@@ -204,3 +204,219 @@ Source: Your Arducam captures (augment with flips, color jitter).
 | Segmentation (Segmentation Masks) - SAM2 Deployed (Retrained) | Segmentation uses SAM2 (Meta, 2024) as the model, with DINOv2 as the image encoder backbone. SAM2 generates binary masks for objects based on prompts (points, boxes, text). It uses feature maps from DINOv2 to predict masks via a lightweight Transformer decoder. You have deployed SAM2, tested with samples, and need to retrain on your Arducam images for better performance on your domain (e.g., wide-angle distortions, specific objects). Output is masks (H x W binary arrays) for fusion. | - Model Size: Tiny (38M), Small (46M), Base+ (80M), Large (224M)<br>- Prompt Type: Point/Box/Mask/Text<br>- Multimask Output: False (single mask)<br>- Optimizer: AdamW (lr=1e-4)<br>- Loss: BCE/Focal<br>- Batch Size: 4–8 on RTX 4050 | Pre-trained on SA-1B (1B masks). For retraining: 1K–10K images from your Arducam with mask labels (use SAM2 auto-masks as pseudo-labels or LabelStudio for manual). Augment with flips, crops. | Retrain the decoder heads on DINOv2 backbone (freeze DINOv2). Use your Arducam images as input, pseudo-masks as labels. Epochs: 5–10. Script: Use SAM2's training code or custom `train_sam2.py`. |
 | Fusing Depth Heads with Segmentation Heads to Get Masks | Fusion combines the depth head (from DINOv2 + depth decoder) and segmentation head (DINOv2 + segmentation decoder) to produce enhanced masks. This can be feature-level (concatenate DINOv2 features and train a joint decoder) or output-level (use depth map to refine masks, e.g., segment only objects at certain depths). The fused system outputs depth-aware segmentation masks (e.g., masks with object distance labels). This improves accuracy in ambiguous areas (depth helps textureless segmentation, masks help depth boundaries). | - Fusion Type: Feature-level (concat features) or Output-level (post-process)<br>- Joint Loss Weight: 0.5 depth + 0.5 segmentation<br>- Depth Threshold: 2.0 m (for foreground)<br>- Optimizer: AdamW (lr=1e-5)<br>- Loss: L1 (depth) + BCE (segmentation)<br>- Batch Size: 4 on RTX 4050 | 5K–50K images with both depth and mask labels (use FoundationStereo for depth, SAM2 for masks). Augment with mixed tasks. | Freeze DINOv2, train joint heads on combined loss. Use your Arducam data. Epochs: 10–20. Script: Custom `train_fusion.py` fusing DAv2 and SAM2 decoders. |
 | Full Workflow (Phase 1: Vision) | The full workflow starts with Phase 1 (Vision): Input stereo/monocular image → DINOv2 extracts shared features → split to depth branch (disparity map from FoundationStereo or DINOv2 head, retrained) and segmentation branch (masks from SAM2, retrained) → fuse heads to get depth-aware segmentation masks. This creates a multi-task system for segmented metric depth. Retrain all on your Arducam data for customization. Output: Masks with depth context (e.g., "person at 1.5m"). | - Backbone: DINOv2 base/large<br>- Input Res: 518x518<br>- Optimizer: AdamW (lr=1e-5)<br>- Joint Loss: 0.5 depth + 0.5 segmentation<br>- Batch Size: 4–8<br>- Epochs: 5–20 per task, 10 for fusion | 5K–50K Arducam images with paired depth/mask labels (pseudo-labeled from pre-trained models). Augment for diversity. | Freeze DINOv2, retrain heads separately then fuse. Use Hydra for configs. Script: `train_workflow.py`. |
+
+
+# 6. Implementation Guide: Step-by-Step Procedure
+
+## Step 1: Organize Your Project Structure
+Your current structure is good, but let's add subfolders for clarity and to keep things modular. Run these commands in PowerShell from `D:\moni\bluvern`:
+
+```powershell
+# Create main project folder for this workflow (to avoid cluttering bluvern root)
+mkdir stereo_fusion_project
+cd stereo_fusion_project
+
+# Create subfolders for datasets, models, scripts, and outputs
+mkdir datasets
+mkdir models
+mkdir scripts
+mkdir outputs
+mkdir docs
+
+# Copy your existing deployments into this project (to keep everything in one place)
+copy ..\FoundationStereo -Destination foundation_stereo -Recurse -Force
+copy ..\sam2_project -Destination sam2 -Recurse -Force
+copy ..\VIT -Destination dinov2 -Recurse -Force  # Even if ignoring for now, to have it ready
+copy ..\fusion_workflow.md -Destination docs
+copy ..\semantic_stereo_fusion.md -Destination docs
+
+# Create a main README.md for the full workflow
+New-Item -ItemType File -Path README.md -Force
+```
+
+### Updated Structure After This Step:
+```text
+D:\moni\bluvern\stereo_fusion_project\
+├── datasets/  (for training data)
+├── models/  (for checkpoints)
+├── scripts/  (for training/fusion code)
+├── outputs/  (for results)
+├── docs/  (fusion_workflow.md, semantic_stereo_fusion.md, README.md)
+├── foundation_stereo/  (your deployed FoundationStereo)
+├── sam2/  (your deployed SAM2)
+└── dinov2/  (VIT folder, ignored for now)
+```
+
+> [!TIP]
+> **Why this step?**
+> Keeps everything centralized, easy to git commit, and avoids scattering files.
+
+## Step 2: Set Up the Conda Environment
+Reuse your `foundation_stereo` env since it's already configured with CUDA and dependencies for FoundationStereo and SAM2.
+
+```powershell
+# Reuse existing
+conda activate foundation_stereo
+
+# (Optional) If you want a new env for this project
+conda create -n stereo_fusion -y python=3.10
+conda activate stereo_fusion
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+pip install git+https://github.com/facebookresearch/segment-anything-2.git
+pip install git+https://github.com/facebookresearch/dinov2.git
+pip install flash-attn --no-build-isolation
+pip install hydra-core opencv-python pandas matplotlib seaborn tqdm pillow
+```
+
+> [!TIP]
+> **Why this step?**
+> Ensures all dependencies (PyTorch, SAM2, DINOv2, Hydra for configs) are in place.
+
+## Step 3: Deploy DINOv2 as the Base Vision Model
+DINOv2 is the shared backbone for both depth and segmentation. Deploy it standalone to test feature extraction.
+
+### Install DINOv2
+```powershell
+pip install git+https://github.com/facebookresearch/dinov2.git
+```
+
+### Download DINOv2 checkpoint
+```powershell
+mkdir models/dinov2
+cd models/dinov2
+curl -L -O https://dl.fbaipublicfiles.com/dinov2/dinov2_vitb14/dinov2_vitb14_pretrain.pth
+cd ..\..
+```
+
+### Test DINOv2
+Create `scripts/test_dinov2.py`:
+```python
+import torch
+from dinov2.models.vision_transformer import dinov2_vitb14
+from PIL import Image
+from torchvision import transforms
+
+model = dinov2_vitb14(pretrained=True).eval().cuda()
+checkpoint = torch.load("models/dinov2/dinov2_vitb14_pretrain.pth")
+model.load_state_dict(checkpoint, strict=False)
+
+transform = transforms.Compose([
+    transforms.Resize(518),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+])
+
+image_path = "test_image.png"  # your sample image
+image = Image.open(image_path)
+input_tensor = transform(image).unsqueeze(0).cuda()
+
+features = model(input_tensor)
+print("Feature shape:", features.shape)  # e.g., torch.Size([1, 1024])
+```
+
+Run the test:
+```powershell
+copy D:\moni\bluvern\FoundationStereo\assets\left.png test_image.png
+python scripts/test_dinov2.py
+```
+
+> [!TIP]
+> **Why this step?**
+> DINOv2 provides the shared features. Test it to ensure the backbone works.
+
+## Step 4: Retrain FoundationStereo for Depth
+Retrain the depth head on DINOv2 features for your specific domain.
+
+### Prepare Dataset
+1. Collect 5K–20K stereo pairs from your Arducam (left/right images).
+2. **Generate labels:** Use pre-trained FoundationStereo to create disparity labels (pseudo-labeling).
+3. **Folder structure:**
+   - `datasets/my_arducam/left/`
+   - `datasets/my_arducam/right/`
+   - `datasets/my_arducam/disparity/`
+
+### Modify FoundationStereo for Retraining
+1. Update `scripts/train.py` (or create `scripts/retrain_depth.py`) to load your dataset.
+2. **Config:** Use `configs/train_fsd.yaml` as base, change `dataset_path` to your folder.
+
+### Run Retraining
+```powershell
+python scripts/train.py --cfg configs/train_fsd.yaml --dataset_path datasets/my_arducam --epochs 10 --batch_size 4 --lr 1e-5
+```
+
+### Dataset Details
+- **Size:** 5K–20K pairs (start with 5K, add more if accuracy low).
+- **Sources:** Your Arducam captures (indoor/outdoor, various lighting).
+- **Labels:** Pseudo-disparity from pre-trained model or LiDAR if available.
+- **Augmentation:** Flips, rotation, color jitter (use imgaug).
+
+> [!TIP]
+> **Why this step?**
+> Retrains the depth head on DINOv2 features for your domain.
+
+## Step 5: Retrain SAM2 for Segmentation
+Retrain the segmentation head on DINOv2 features for your Arducam data.
+
+### Prepare Dataset
+1. Collect 1K–10K images from your Arducam.
+2. **Generate labels:** Use pre-trained SAM2 for pseudo-masks, refine with LabelStudio.
+3. **Folder structure:**
+   - `datasets/my_arducam/images/`
+   - `datasets/my_arducam/masks/`
+
+### Modify SAM2 for Retraining
+Use SAM2's training code (modify `sam2/train.py` or create `scripts/retrain_sam2.py`).
+
+### Run Retraining
+```powershell
+python scripts/retrain_sam2.py --dataset_path datasets/my_arducam --epochs 5 --batch_size 4 --lr 1e-4
+```
+
+### Dataset Details
+- **Size:** 1K–10K images with masks.
+- **Sources:** Your Arducam images (diverse objects/scenes).
+- **Labels:** Pseudo-masks from SAM2, manual refinement.
+- **Augmentation:** Crops, flips, scale.
+
+> [!TIP]
+> **Why this step?**
+> Retrains the segmentation head on DINOv2 features for your data.
+
+## Step 6: Fuse Depth and Segmentation Heads
+Produces depth-aware masks as final output.
+
+### Create Fusion Script
+Create `scripts/fusion.py` to:
+1. Load DINOv2 backbone.
+2. Attach depth and segmentation heads.
+3. Train with joint loss.
+
+### Run Fusion Training
+```powershell
+# Prepare Joint Dataset: Use 5K images with both depth and mask labels.
+python scripts/fusion.py --dataset_path datasets/my_arducam --epochs 10 --batch_size 4 --lr 1e-5
+```
+
+### Dataset Details
+- **Size:** 5K–50K joint labeled images.
+- **Sources:** Your Arducam with pseudo-labels from earlier steps.
+
+> [!TIP]
+> **Why this step?**
+> Produces depth-aware masks as final output.
+
+## Step 7: Test and Evaluate
+
+### Run Fused Model
+```powershell
+python scripts/fusion.py --mode test --input left.jpg right.jpg --output outputs/fused_masks.png
+```
+
+### Evaluation
+Use metrics like IoU for masks and RMSE for depth.
+
+### Overall Dataset Summary
+- **Sources:** Arducam captures, synthetic (FSD for depth, SA-1B for segmentation).
+- **Size:** 5K–50K per task, 5K for fusion.
+- **Tools:** LabelStudio for manual labels, pseudo-labeling from pre-trained models.
+- **Storage:** 100–500 GB (images + masks/depth).
