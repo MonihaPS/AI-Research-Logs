@@ -49,7 +49,7 @@ $$ \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right
 By taking the dot product of $Q$ and $K$ (and dividing by $\sqrt{d_k}$ to stabilize gradients), we obtain the "attention scores". We apply a Softmax function to normalize these weights to probabilities (0 to 1). Finally, we multiply these weights by $V$ to emphasize the most contextually relevant words.
 
 <p align="center">
-  <img src="images/Scaled_Dot_Product_Attention.png" alt="Scaled Dot-Product Attention Diagram" width="500">
+  <img src="images/Scaled_Dot_Product_Attention.png" alt="Scaled Dot-Product Attention Diagram" width="300">
   <br>
   <em>Figure 2: Scaled Dot-Product Attention mechanism visualizing the matrix multiplication flow.</em>
 </p>
@@ -63,7 +63,7 @@ where $$ \text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V) $$
 Here, the projections are parameter matrices $W_i^Q \in \mathbb{R}^{d_{model} \times d_k}$, $W_i^K \in \mathbb{R}^{d_{model} \times d_k}$, $W_i^V \in \mathbb{R}^{d_{model} \times d_v}$, and $W^O \in \mathbb{R}^{hd_v \times d_{model}}$.
 
 <p align="center">
-  <img src="images/Multi-Head_Attention.png" alt="Multi-Head Attention Layers" width="600">
+  <img src="images/Multi-Head_Attention.png" alt="Multi-Head Attention Layers" width="400">
   <br>
   <em>Figure 3: Multi-Head layout splitting vectors parallelly to compute distinct contextual sub-spaces before concatenation.</em>
 </p>
