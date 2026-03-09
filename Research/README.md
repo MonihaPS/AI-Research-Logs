@@ -5,8 +5,15 @@ Welcome to the research documentation on the **Transformer Architecture**, a gro
 ---
 
 ## 📸 Architecture Overview
-![Transformer Architecture](Transformer%20Architecture.webp)
+![Transformer Architecture](Transformer_Architecture.webp)
 *Figure 1: The Encoder-Decoder structure of the original Transformer from "Attention Is All You Need".*
+
+### Why the Transformer Shifted NLP History
+Before the advent of the Transformer, Sequence-to-Sequence (Seq2Seq) tasks relied heavily on Recurrent Neural Networks (RNNs) and Long Short-Term Memory (LSTM) models. These models processed data sequentially, leading to major bottlenecks:
+1. **Vanishing Gradients / Memory Loss:** Information from the start of a long sequence deteriorated by the time it reached the end.
+2. **Computational Inefficiency:** Sequential operations cannot be parallelized efficiently on GPUs.
+
+The Transformer eradicated recurrence entirely. By leveraging exclusively on the **Attention Mechanism**, it processes all sequences *in parallel*, significantly drastically reducing training times and setting new state-of-the-art BLEU scores across translation benchmarks.
 
 ---
 
@@ -16,8 +23,8 @@ Before data can be processed by a Transformer, it must be converted from raw tex
 1. **Tokenization:** Input sentences are broken down into discrete tokens (words or subwords).
 2. **Input Embeddings:** These tokens are converted into high-dimensional dense vectors (e.g., 768 dimensions). This embedding step captures the semantic meaning of each token.
 3. **Positional Encoding:** Unlike older Sequential models (RNNs, LSTMs, GRUs) that process data sequentially (and suffer from memory loss or vanishing gradients), Transformers process data in **parallel**. Positional encodings act like "GPS coordinates" added to the input embeddings so that the model understands the positional order of the words. Formally, this uses sine and cosine functions of different frequencies for even and odd positions:
-   $$ \text PE_{(pos, 2i)} = \text{sin}(pos / 10000^{2i/d_{model}}) $$
-   $$ \text PE_{(pos, 2i+1)} = \text{cos}(pos / 10000^{2i/d_{model}}) $$
+   $$ PE_{(pos, 2i)} = \sin(pos / 10000^{2i/d_{model}}) $$
+   $$ PE_{(pos, 2i+1)} = \cos(pos / 10000^{2i/d_{model}}) $$
 
 ---
 
@@ -51,19 +58,39 @@ Here, the projections are parameter matrices $W_i^Q \in \mathbb{R}^{d_{model} \t
 ## 3. The Architecture Components
 
 ### A. The Encoder (Understanding the Input)
-The Encoder is responsible for deeply analyzing the input features. It consists of multiple identical layers, each containing:
+The Encoder is responsible for deeply analyzing the input features by converting the initial token sequence into a continuous representation that holds context. It consists of multiple identical cascaded layers ($N=6$ in the base model), each containing two primary sub-layers:
 * **Multi-Head Self-Attention**
-* **Position-wise Feed-Forward Networks (FFN):** These process the extracted features from the previous attention stage. It consists of two linear transformations with a ReLU activation in between:
+* **Position-wise Feed-Forward Networks (FFN):** These process the extracted features from the previous attention stage individually and identically for each position. It consists of two linear transformations with a ReLU activation in between:
   $$ \text{FFN}(x) = \max(0, xW_1 + b_1)W_2 + b_2 $$
-* **Add & Norm (Skip/Residual Connections):** The model adds the input of the layer to its output, protecting against the vanishing gradient problem. Layer Normalization ($Mean=0, Variance=1$) keeps the numbers at a manageable scale to maintain math stability.
+* **Add & Norm (Skip/Residual Connections):** Around each of the two sub-layers, there is a residual connection followed by layer normalization. The output of each sub-layer is $LayerNorm(x + Sublayer(x))$. This protects against the vanishing gradient problem in deep networks. Layer Normalization ($Mean=0, Variance=1$) keeps the activations at a manageable scale to maintain math stability throughout the deep network.
 
-![Skip Connections Architecture](Skip%20connections.png)
+![Skip Connections Architecture](Skip_Connections.png)
 
 ### B. The Decoder (Generating the Output)
-The Decoder is an auto-regressive model that takes the encoder's output and the previously generated outputs to predict the next token. 
-* **Masked Multi-Head Attention:** It ensures that the model can only look at *past* words and blocks future tokens to prevent the model from "cheating".
-* **Cross-Attention:** Computes attention using the Decoder's $Q$ and the Encoder's $K$ and $V$.
-* **Linear & Softmax:** Converts the decoder output into a predicted word probability distribution. The token with the highest probability is generated.
+The Decoder is an auto-regressive model that takes the encoder's encoded context and the previously generated outputs to predict the next token. Like the Encoder, it is composed of $N=6$ identical layers, but inserts a third sub-layer:
+* **Masked Multi-Head Attention:** It ensures that the sequence generation is purely causal. It masks out all subsequent positions (setting them to $-\infty$ during the Softmax computation) so the model can only look at *past* words, blocking future tokens to prevent the model from "cheating" during training.
+* **Cross-Attention (Encoder-Decoder Attention):** This sub-layer performs attention over the output of the encoder stack. It computes attention using the Decoder's generated Query ($Q$) against the Encoder's Key ($K$) and Value ($V$) representations. This is how the text generation ties back to the input context!
+* **Linear & Softmax:** Converts the final decoder output vector into a predicted word probability distribution over the entire vocabulary. The token with the highest probability is generated/predicted sequentially.
+
+---
+
+## 4. Hyperparameters & Computational Complexity
+*From the "Attention Is All You Need" Base Model implementation.*
+
+### Core Hyperparameters
+To facilitate these operations, the authors defined specific architectural dimensions:
+* **$d_{model} = 512$:** The dimension of inputs and outputs across all sub-layers (Embedding size). This keeps residual connections structurally perfectly aligned.
+* **$N = 6$:** Number of stacked identical layers for both Encoder and Decoder.
+* **$h = 8$:** Number of parallel attention "Heads".
+* **$d_k = d_v = d_{model}/h = 64$:** Dimension of the divided $Q, K, V$ matrices.
+* **$d_{ff} = 2048$:** The inner-layer dimensionality of the Feed-Forward Network.
+
+### Why Attention scales better than Recurrence
+Self-attention connects all positions with a constant number of sequentially executed operations, $O(1)$, whereas recurrent layers require $O(n)$ operations. 
+
+For sequences where sequence length $n$ is smaller than the representation dimensionality $d$ (which is the case for most state-of-the-art models), self-attention is mathematically faster.
+* **Self-Attention Complexity per Layer:** $O(n^2 \cdot d)$
+* **Recurrent Complexity per Layer:** $O(n \cdot d^2)$
 
 ---
 
@@ -116,7 +143,7 @@ To implement a Vision Transformer from scratch (e.g., classifying handwritten di
 * **Phase 6: Model Training Loop**
   The standard PyTorch training loop on MNIST dataset data: loading, train-val split, batching, forward pass, `loss.backward()`, and `optimizer.step()`.
 
-![MNIST Training Loop Results](MNIST%20results.png)
+![MNIST Training Loop Results](MNIST_Results.png)
 
 ---
 *This repository serves as a master reference for understanding transformer dynamics across NLP and Computer Vision fields.*
