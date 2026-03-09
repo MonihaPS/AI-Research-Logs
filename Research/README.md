@@ -5,8 +5,12 @@ Welcome to the research documentation on the **Transformer Architecture**, a gro
 ---
 
 ## 📸 Architecture Overview
-![Transformer Architecture](images/Transformer_Architecture.webp)
-*Figure 1: The Encoder-Decoder structure of the original Transformer from "Attention Is All You Need".*
+## 📸 Architecture Overview
+<p align="center">
+  <img src="images/Transformer_Architecture.webp" alt="Transformer Architecture" width="800">
+  <br>
+  <em>Figure 1: The Encoder-Decoder structure of the original Transformer from "Attention Is All You Need".</em>
+</p>
 
 ### Why the Transformer Shifted NLP History
 Before the advent of the Transformer, Sequence-to-Sequence (Seq2Seq) tasks relied heavily on Recurrent Neural Networks (RNNs) and Long Short-Term Memory (LSTM) models. These models processed data sequentially, leading to major bottlenecks:
@@ -23,8 +27,10 @@ Before data can be processed by a Transformer, it must be converted from raw tex
 1. **Tokenization:** Input sentences are broken down into discrete tokens (words or subwords).
 2. **Input Embeddings:** These tokens are converted into high-dimensional dense vectors (e.g., 768 dimensions). This embedding step captures the semantic meaning of each token.
 3. **Positional Encoding:** Unlike older Sequential models (RNNs, LSTMs, GRUs) that process data sequentially (and suffer from memory loss or vanishing gradients), Transformers process data in **parallel**. Positional encodings act like "GPS coordinates" added to the input embeddings so that the model understands the positional order of the words. Formally, this uses sine and cosine functions of different frequencies for even and odd positions:
-   $$ PE_{(pos, 2i)} = \sin(pos / 10000^{2i/d_{model}}) $$
-   $$ PE_{(pos, 2i+1)} = \cos(pos / 10000^{2i/d_{model}}) $$
+
+$$ PE_{(pos, 2i)} = \sin\left(\frac{pos}{10000^{2i/d_{model}}}\right) $$
+
+$$ PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d_{model}}}\right) $$
 
 ---
 
@@ -43,8 +49,11 @@ $$ \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right
 
 By taking the dot product of $Q$ and $K$ (and dividing by $\sqrt{d_k}$ to stabilize gradients), we obtain the "attention scores". We apply a Softmax function to normalize these weights to probabilities (0 to 1). Finally, we multiply these weights by $V$ to emphasize the most contextually relevant words.
 
-![Scaled Dot-Product Attention Diagram](images/Scaled_Dot_Product_Attention.png)
-*Figure 2: Scaled Dot-Product Attention mechanism visualizing the matrix multiplication flow.*
+<p align="center">
+  <img src="images/Scaled_Dot_Product_Attention.png" alt="Scaled Dot-Product Attention Diagram" width="500">
+  <br>
+  <em>Figure 2: Scaled Dot-Product Attention mechanism visualizing the matrix multiplication flow.</em>
+</p>
 
 ### Multi-Head Attention
 Instead of performing a single attention function, the Q,K,V vectors are linearly projected $h$ times in parallel. The results are concatenated and projected again. This allows the model to jointly attend to information from different representation subspaces at different positions. The formula is defined as:
@@ -54,8 +63,11 @@ where $$ \text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V) $$
 
 Here, the projections are parameter matrices $W_i^Q \in \mathbb{R}^{d_{model} \times d_k}$, $W_i^K \in \mathbb{R}^{d_{model} \times d_k}$, $W_i^V \in \mathbb{R}^{d_{model} \times d_v}$, and $W^O \in \mathbb{R}^{hd_v \times d_{model}}$.
 
-![Multi-Head Attention Layers](images/Multi-Head_Attention.png)
-*Figure 3: Multi-Head layout splitting vectors parallelly to compute distinct contextual sub-spaces before concatenation.*
+<p align="center">
+  <img src="images/Multi-Head_Attention.png" alt="Multi-Head Attention Layers" width="600">
+  <br>
+  <em>Figure 3: Multi-Head layout splitting vectors parallelly to compute distinct contextual sub-spaces before concatenation.</em>
+</p>
 
 ---
 
@@ -68,8 +80,11 @@ The Encoder is responsible for deeply analyzing the input features by converting
   $$ \text{FFN}(x) = \max(0, xW_1 + b_1)W_2 + b_2 $$
 * **Add & Norm (Skip/Residual Connections):** Around each of the two sub-layers, there is a residual connection followed by layer normalization. The output of each sub-layer is $LayerNorm(x + Sublayer(x))$. This protects against the vanishing gradient problem in deep networks. Layer Normalization ($Mean=0, Variance=1$) keeps the activations at a manageable scale to maintain math stability throughout the deep network.
 
-![Skip Connections Architecture](images/Skip_Connections.png)
-*Figure 4: Residual skip connections wrapping around the core Encoder sub-layers to maintain information integrity.*
+<p align="center">
+  <img src="images/Skip_Connections.png" alt="Skip Connections Architecture" width="500">
+  <br>
+  <em>Figure 4: Residual skip connections wrapping around the core Encoder sub-layers to maintain information integrity.</em>
+</p>
 
 ### B. The Decoder (Generating the Output)
 The Decoder is an auto-regressive model that takes the encoder's encoded context and the previously generated outputs to predict the next token. Like the Encoder, it is composed of $N=6$ identical layers, but inserts a third sub-layer:
@@ -148,8 +163,11 @@ To implement a Vision Transformer from scratch (e.g., classifying handwritten di
 * **Phase 6: Model Training Loop**
   The standard PyTorch training loop on MNIST dataset data: loading, train-val split, batching, forward pass, `loss.backward()`, and `optimizer.step()`.
 
-![MNIST Training Loop Results](images/MNIST_Results.png)
-*Figure 5: Vision Transformer classification results after compiling and training the 6 phases on the MNIST handwritten digit dataset.*
+<p align="center">
+  <img src="images/MNIST_Results.png" alt="MNIST Training Loop Results" width="600">
+  <br>
+  <em>Figure 5: Vision Transformer classification results after compiling and training the 6 phases on the MNIST handwritten digit dataset.</em>
+</p>
 
 ---
 *This repository serves as a master reference for understanding transformer dynamics across NLP and Computer Vision fields.*
