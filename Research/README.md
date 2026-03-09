@@ -15,7 +15,9 @@ Before data can be processed by a Transformer, it must be converted from raw tex
 
 1. **Tokenization:** Input sentences are broken down into discrete tokens (words or subwords).
 2. **Input Embeddings:** These tokens are converted into high-dimensional dense vectors (e.g., 768 dimensions). This embedding step captures the semantic meaning of each token.
-3. **Positional Encoding:** Unlike older Sequential models (RNNs, LSTMs, GRUs) that process data sequentially (and suffer from memory loss or vanishing gradients), Transformers process data in **parallel**. Positional encodings act like "GPS coordinates" added to the input embeddings so that the model understands the positional order of the words. Formally, this uses sine and cosine functions of different frequencies for even and odd positions.
+3. **Positional Encoding:** Unlike older Sequential models (RNNs, LSTMs, GRUs) that process data sequentially (and suffer from memory loss or vanishing gradients), Transformers process data in **parallel**. Positional encodings act like "GPS coordinates" added to the input embeddings so that the model understands the positional order of the words. Formally, this uses sine and cosine functions of different frequencies for even and odd positions:
+   $$ PE_{(pos, 2i)} = \sin(pos / 10000^{2i/d_{model}}) $$
+   $$ PE_{(pos, 2i+1)} = \cos(pos / 10000^{2i/d_{model}}) $$
 
 ---
 
@@ -37,7 +39,12 @@ By taking the dot product of $Q$ and $K$ (and dividing by $\sqrt{d_k}$ to stabil
 ![Attention Mechanisms Diagram](Attentions.png)
 
 ### Multi-Head Attention
-Instead of performing a single attention function, the Q,K,V vectors are linearly projected $h$ times in parallel. The results are concatenated and projected again. This allows the model to jointly attend to information from different representation subspaces at different positions.
+Instead of performing a single attention function, the Q,K,V vectors are linearly projected $h$ times in parallel. The results are concatenated and projected again. This allows the model to jointly attend to information from different representation subspaces at different positions. The formula is defined as:
+
+$$ \text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, ..., \text{head}_h)W^O $$
+where $$ \text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V) $$
+
+Here, the projections are parameter matrices $W_i^Q \in \mathbb{R}^{d_{model} \times d_k}$, $W_i^K \in \mathbb{R}^{d_{model} \times d_k}$, $W_i^V \in \mathbb{R}^{d_{model} \times d_v}$, and $W^O \in \mathbb{R}^{hd_v \times d_{model}}$.
 
 ---
 
@@ -46,7 +53,8 @@ Instead of performing a single attention function, the Q,K,V vectors are linearl
 ### A. The Encoder (Understanding the Input)
 The Encoder is responsible for deeply analyzing the input features. It consists of multiple identical layers, each containing:
 * **Multi-Head Self-Attention**
-* **Feed-Forward Neural Networks:** These process the extracted features from the previous attention stage.
+* **Position-wise Feed-Forward Networks (FFN):** These process the extracted features from the previous attention stage. It consists of two linear transformations with a ReLU activation in between:
+  $$ \text{FFN}(x) = \max(0, xW_1 + b_1)W_2 + b_2 $$
 * **Add & Norm (Skip/Residual Connections):** The model adds the input of the layer to its output, protecting against the vanishing gradient problem. Layer Normalization ($Mean=0, Variance=1$) keeps the numbers at a manageable scale to maintain math stability.
 
 ![Skip Connections Architecture](Skip%20connections.png)
