@@ -16,8 +16,8 @@ Before data can be processed by a Transformer, it must be converted from raw tex
 1. **Tokenization:** Input sentences are broken down into discrete tokens (words or subwords).
 2. **Input Embeddings:** These tokens are converted into high-dimensional dense vectors (e.g., 768 dimensions). This embedding step captures the semantic meaning of each token.
 3. **Positional Encoding:** Unlike older Sequential models (RNNs, LSTMs, GRUs) that process data sequentially (and suffer from memory loss or vanishing gradients), Transformers process data in **parallel**. Positional encodings act like "GPS coordinates" added to the input embeddings so that the model understands the positional order of the words. Formally, this uses sine and cosine functions of different frequencies for even and odd positions:
-   $$ PE_{(pos, 2i)} = \sin(pos / 10000^{2i/d_{model}}) $$
-   $$ PE_{(pos, 2i+1)} = \cos(pos / 10000^{2i/d_{model}}) $$
+   $$ \text PE_{(pos, 2i)} = \text{sin}(pos / 10000^{2i/d_{model}}) $$
+   $$ \text PE_{(pos, 2i+1)} = \text{cos}(pos / 10000^{2i/d_{model}}) $$
 
 ---
 
