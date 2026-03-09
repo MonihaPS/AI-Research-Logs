@@ -5,7 +5,7 @@ Welcome to the research documentation on the **Transformer Architecture**, a gro
 ---
 
 ## 📸 Architecture Overview
-![Transformer Architecture](Transformer_Architecture.webp)
+![Transformer Architecture](images/Transformer_Architecture.webp)
 *Figure 1: The Encoder-Decoder structure of the original Transformer from "Attention Is All You Need".*
 
 ### Why the Transformer Shifted NLP History
@@ -43,7 +43,8 @@ $$ \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right
 
 By taking the dot product of $Q$ and $K$ (and dividing by $\sqrt{d_k}$ to stabilize gradients), we obtain the "attention scores". We apply a Softmax function to normalize these weights to probabilities (0 to 1). Finally, we multiply these weights by $V$ to emphasize the most contextually relevant words.
 
-![Attention Mechanisms Diagram](Attentions.png)
+![Attention Mechanisms Diagram](images/Attentions.png)
+*Figure 2: Scaled Dot-Product Attention mechanism visualizing the matrix multiplication flow.*
 
 ### Multi-Head Attention
 Instead of performing a single attention function, the Q,K,V vectors are linearly projected $h$ times in parallel. The results are concatenated and projected again. This allows the model to jointly attend to information from different representation subspaces at different positions. The formula is defined as:
@@ -64,7 +65,8 @@ The Encoder is responsible for deeply analyzing the input features by converting
   $$ \text{FFN}(x) = \max(0, xW_1 + b_1)W_2 + b_2 $$
 * **Add & Norm (Skip/Residual Connections):** Around each of the two sub-layers, there is a residual connection followed by layer normalization. The output of each sub-layer is $LayerNorm(x + Sublayer(x))$. This protects against the vanishing gradient problem in deep networks. Layer Normalization ($Mean=0, Variance=1$) keeps the activations at a manageable scale to maintain math stability throughout the deep network.
 
-![Skip Connections Architecture](Skip_Connections.png)
+![Skip Connections Architecture](images/Skip_Connections.png)
+*Figure 3: Residual skip connections wrapping around the core Encoder sub-layers to maintain information integrity.*
 
 ### B. The Decoder (Generating the Output)
 The Decoder is an auto-regressive model that takes the encoder's encoded context and the previously generated outputs to predict the next token. Like the Encoder, it is composed of $N=6$ identical layers, but inserts a third sub-layer:
@@ -143,7 +145,8 @@ To implement a Vision Transformer from scratch (e.g., classifying handwritten di
 * **Phase 6: Model Training Loop**
   The standard PyTorch training loop on MNIST dataset data: loading, train-val split, batching, forward pass, `loss.backward()`, and `optimizer.step()`.
 
-![MNIST Training Loop Results](MNIST_Results.png)
+![MNIST Training Loop Results](images/MNIST_Results.png)
+*Figure 4: Vision Transformer classification results after compiling and training the 6 phases on the MNIST handwritten digit dataset.*
 
 ---
 *This repository serves as a master reference for understanding transformer dynamics across NLP and Computer Vision fields.*
