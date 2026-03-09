@@ -5,7 +5,6 @@ Welcome to the research documentation on the **Transformer Architecture**, a gro
 ---
 
 ## 📸 Architecture Overview
-## 📸 Architecture Overview
 <p align="center">
   <img src="images/Transformer_Architecture.webp" alt="Transformer Architecture" width="800">
   <br>
@@ -77,7 +76,9 @@ Here, the projections are parameter matrices $W_i^Q \in \mathbb{R}^{d_{model} \t
 The Encoder is responsible for deeply analyzing the input features by converting the initial token sequence into a continuous representation that holds context. It consists of multiple identical cascaded layers ($N=6$ in the base model), each containing two primary sub-layers:
 * **Multi-Head Self-Attention**
 * **Position-wise Feed-Forward Networks (FFN):** These process the extracted features from the previous attention stage individually and identically for each position. It consists of two linear transformations with a ReLU activation in between:
-  $$ \text{FFN}(x) = \max(0, xW_1 + b_1)W_2 + b_2 $$
+
+$$ \text{FFN}(x) = \max(0, xW_1 + b_1)W_2 + b_2 $$
+
 * **Add & Norm (Skip/Residual Connections):** Around each of the two sub-layers, there is a residual connection followed by layer normalization. The output of each sub-layer is $LayerNorm(x + Sublayer(x))$. This protects against the vanishing gradient problem in deep networks. Layer Normalization ($Mean=0, Variance=1$) keeps the activations at a manageable scale to maintain math stability throughout the deep network.
 
 <p align="center">
