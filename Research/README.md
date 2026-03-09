@@ -43,7 +43,7 @@ $$ \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right
 
 By taking the dot product of $Q$ and $K$ (and dividing by $\sqrt{d_k}$ to stabilize gradients), we obtain the "attention scores". We apply a Softmax function to normalize these weights to probabilities (0 to 1). Finally, we multiply these weights by $V$ to emphasize the most contextually relevant words.
 
-![Attention Mechanisms Diagram](images/Attentions.png)
+![Scaled Dot-Product Attention Diagram](images/Scaled_Dot_Product_Attention.png)
 *Figure 2: Scaled Dot-Product Attention mechanism visualizing the matrix multiplication flow.*
 
 ### Multi-Head Attention
@@ -53,6 +53,9 @@ $$ \text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, ..., \text{head}_h)W
 where $$ \text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V) $$
 
 Here, the projections are parameter matrices $W_i^Q \in \mathbb{R}^{d_{model} \times d_k}$, $W_i^K \in \mathbb{R}^{d_{model} \times d_k}$, $W_i^V \in \mathbb{R}^{d_{model} \times d_v}$, and $W^O \in \mathbb{R}^{hd_v \times d_{model}}$.
+
+![Multi-Head Attention Layers](images/Multi-Head_Attention.png)
+*Figure 3: Multi-Head layout splitting vectors parallelly to compute distinct contextual sub-spaces before concatenation.*
 
 ---
 
@@ -66,7 +69,7 @@ The Encoder is responsible for deeply analyzing the input features by converting
 * **Add & Norm (Skip/Residual Connections):** Around each of the two sub-layers, there is a residual connection followed by layer normalization. The output of each sub-layer is $LayerNorm(x + Sublayer(x))$. This protects against the vanishing gradient problem in deep networks. Layer Normalization ($Mean=0, Variance=1$) keeps the activations at a manageable scale to maintain math stability throughout the deep network.
 
 ![Skip Connections Architecture](images/Skip_Connections.png)
-*Figure 3: Residual skip connections wrapping around the core Encoder sub-layers to maintain information integrity.*
+*Figure 4: Residual skip connections wrapping around the core Encoder sub-layers to maintain information integrity.*
 
 ### B. The Decoder (Generating the Output)
 The Decoder is an auto-regressive model that takes the encoder's encoded context and the previously generated outputs to predict the next token. Like the Encoder, it is composed of $N=6$ identical layers, but inserts a third sub-layer:
@@ -146,7 +149,7 @@ To implement a Vision Transformer from scratch (e.g., classifying handwritten di
   The standard PyTorch training loop on MNIST dataset data: loading, train-val split, batching, forward pass, `loss.backward()`, and `optimizer.step()`.
 
 ![MNIST Training Loop Results](images/MNIST_Results.png)
-*Figure 4: Vision Transformer classification results after compiling and training the 6 phases on the MNIST handwritten digit dataset.*
+*Figure 5: Vision Transformer classification results after compiling and training the 6 phases on the MNIST handwritten digit dataset.*
 
 ---
 *This repository serves as a master reference for understanding transformer dynamics across NLP and Computer Vision fields.*
