@@ -45,6 +45,11 @@ To restore the sense of time and order, we use **Positional Encoding**. Instead 
 $$PE(pos, 2i) = \sin\left(\frac{pos}{10000^{2i/d}}\right)$$
 $$PE(pos, 2i+1) = \cos\left(\frac{pos}{10000^{2i/d}}\right)$$
 
+**Where:**
+- `pos` = token position
+- `i` = dimension index
+- `d` = embedding size
+
 By adding these oscillating waves to our embeddings, every token carries a unique "timestamp" that tells the model exactly where it sits in the sequence.
 
 ---
@@ -53,23 +58,58 @@ By adding these oscillating waves to our embeddings, every token carries a uniqu
 
 If the Transformer has a "heart," it is **Self-Attention**. This mechanism allows the model to look at an input sequence and, for every word, decide which other words are most important for understanding its context.
 
-To achieve this, the model projects each input embedding into three distinct vectors through learned linear transformations:
-- **Query (Q)**: "What am I looking for?"
-- **Key (K)**: "What do I contain?"
-- **Value (V)**: "What information do I give if I am a match?"
+To achieve this, the model projects each input embedding into three distinct vectors through learned linear transformations: **Query (Q)**, **Key (K)**, and **Value (V)**.
 
-The relationship is then calculated using the Attention Formula:
+**Linear projections:**
+$$Q = XW_Q, \quad K = XW_K, \quad V = XW_V$$
 
-$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
+### Intuition
+| Vector | Meaning |
+| :--- | :--- |
+| **Query** | What information am I searching for? |
+| **Key** | What information do I contain? |
+| **Value** | The actual information to pass forward. |
 
 ### The Intuition of the "Scale"
 Why do we divide by $\sqrt{d_k}$? As the dimensionality increases, the dot product $QK^T$ can grow very large in magnitude. Large values push the softmax function into regions where the gradient is extremely small, causing the model to stop learning. Scaling by the square root of the dimension keeps the variance stable.
+
+**Core transformer computation:**
+$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
+
+### Steps:
+1. **Compute similarity**: $QK^T$
+2. **Scale**: Divide by $\sqrt{d_k}$
+3. **Normalize**: Apply Softmax
+4. **Aggregate**: Weighted value sum
 
 <p align="center">
   <img src="images/Self Attention.png" alt="Self Attention" width="600">
   <br>
   <b>Fig 2: Self Attention Mechanism</b>
 </p>
+
+---
+
+## Softmax in Transformer Attention
+
+In the transformer attention formula:
+$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
+
+The softmax function converts raw attention scores into probabilities. These probabilities determine how much attention one token should give to another token.
+
+### Softmax Formula
+The softmax function is defined as:
+$$\text{softmax}(x_i) = \frac{e^{x_i}}{\sum_{j} e^{x_j}}$$
+
+**Where:**
+- $x_i$ = input score
+- $e$ = exponential function
+
+### Role of Softmax in Transformers
+In the attention formula:
+$$\text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)$$
+
+Softmax converts similarity scores into a probability distribution. These probabilities are then used to weight the Value vectors (V). So the final output becomes a weighted combination of token information.
 
 <p align="center">
   <img src="images/Softmax.png" alt="Softmax" width="600">
@@ -88,6 +128,12 @@ By splitting our 512-dimensional space into multiple "heads", the model can atte
 - **Head 2** might focus on the emotional tone.
 - **Head 3** might track the relationship between pronouns and their antecedents.
 
+<p align="center">
+  <img src="images/Multi-Head_Attention.png" alt="Multi-Head Attention" width="350">
+  <br>
+  <b>Fig 4: Multi-Head Attention Mechanism</b>
+</p>
+
 ---
 
 ## The Architectural Glue: Residuals and Normalization
@@ -103,7 +149,7 @@ $$Output = x + f(x)$$
 <p align="center">
   <img src="images/Residual Diagram.png" alt="Residual Diagram" width="600">
   <br>
-  <b>Fig 4: Residual Connections</b>
+  <b>Fig 5: Residual Connections</b>
 </p>
 
 By adding the original input $x$ to the output of the function, we create a "shortcut" for the gradient. During backpropagation, the gradient can flow through the $+x$ term directly to earlier layers without being distorted by the complex weights of the attention mechanism. This allows us to stack dozens of layers while maintaining a strong training signal.
@@ -149,7 +195,7 @@ The Encoder is "Bi-directional." For any token (like "Bank"), the Encoder looks 
 <p align="center">
   <img src="images/Encoder Diagram.png" alt="Encoder Diagram" width="600">
   <br>
-  <b>Fig 5: Encoder Diagram</b>
+  <b>Fig 6: Encoder Diagram</b>
 </p>
 
 ### The Decoder: The Autoregressive Generator
@@ -161,7 +207,7 @@ In the Encoder, word 1 can see word 10. In the Decoder, this is forbidden during
 <p align="center">
   <img src="images/Decoder Diagram.png" alt="Decoder Diagram" width="600">
   <br>
-  <b>Fig 6: Decoder Diagram</b>
+  <b>Fig 7: Decoder Diagram</b>
 </p>
 
 #### 2. Encoder-Decoder (Cross) Attention
@@ -174,18 +220,18 @@ This allows the Decoder to "reach back" and focus on specific parts of the input
 <p align="center">
   <img src="images/Linear and Softmax.png" alt="Linear and Softmax" width="600">
   <br>
-  <b>Fig 7: Linear and Softmax Layers</b>
+  <b>Fig 8: Linear and Softmax Layers</b>
 </p>
 
 ---
 
 ## Complexity and Scaling: The $O(n^2)$ Reality
 
-The self-attention mechanism has a computational complexity of $O(n^2 \cdot d)$.
+A final technical note for your blog: The self-attention mechanism has a computational complexity of $O(n^2 \cdot d)$.
 - $n$ = Sequence length
 - $d$ = Embedding dimension
 
-This means if you double the length of your input text, the computation quadruples. This is the **"Context Window"** limit seen in modern models like GPT-4. Understanding this bottleneck is the bridge to exploring how future architectures attempt to bypass this quadratic cost.
+This means if you double the length of your input text, the computation doesn't just double—it quadruples. This is the **"Context Window"** limit you see in models like GPT-4. Understanding this bottleneck is the bridge to our next topic: how modern models like DeepSeek attempt to bypass this quadratic cost.
 
 ---
 
@@ -201,7 +247,6 @@ As we move forward, the "Attention" mechanism is proving to be a universal mathe
 - **Original Paper**: [Attention Is All You Need (2017)](https://arxiv.org/abs/1706.03762)
 - **The Illustrated Transformer**: [Jay Alammar's Visual Guide](https://jalammar.github.io/illustrated-transformer/)
 - **Implementation**: [The Annotated Transformer (Harvard NLP)](https://nlp.seas.harvard.edu/2018/04/03/attention.html)
-
 
 ---
 *Designed and documented for AI Research.*
