@@ -88,16 +88,17 @@ By splitting our 512-dimensional space into multiple "heads", the model can atte
 - **Head 2** might focus on the emotional tone.
 - **Head 3** might track the relationship between pronouns and their antecedents.
 
-These heads are concatenated and projected back, creating a rich, multi-layered representation of the text.
-
 ---
 
 ## The Architectural Glue: Residuals and Normalization
 
-To ensure that gradients can flow through deep architectures without exploding or vanishing, two critical components are used:
+If Self-Attention is the brain of the Transformer, Residual Connections and Layer Normalization are the nervous system and the skeletal structure. Without them, a 6-layer (or 175-billion parameter) model would be mathematically impossible to train.
 
-### Residual Connections
-Every sub-layer is wrapped in a "Skip Connection": $x + \text{Sublayer}(x)$. This allows the model to "bypass" a layer if it isn't useful, making the training of deep stacks much more stable.
+### Residual Connections: The "Highway" for Gradients
+In deep neural networks, we face the Vanishing Gradient Problem. As we backpropagate through many layers, the gradient is multiplied repeatedly. If these values are even slightly less than 1, they shrink exponentially until the early layers of the model "stop learning."
+
+The Transformer solves this using **Residual (or Skip) Connections**. For any sub-layer $f(x)$ (like Attention or FFN), the output is actually:
+$$Output = x + f(x)$$
 
 <p align="center">
   <img src="images/Residual Diagram.png" alt="Residual Diagram" width="600">
@@ -105,27 +106,35 @@ Every sub-layer is wrapped in a "Skip Connection": $x + \text{Sublayer}(x)$. Thi
   <b>Fig 4: Residual Connections</b>
 </p>
 
-### Layer Normalization
-Layer Normalization ensures that the scale of activations remains consistent throughout the network, regardless of sequence length.
+By adding the original input $x$ to the output of the function, we create a "shortcut" for the gradient. This allows us to stack dozens of layers while maintaining a strong training signal.
+
+### Layer Normalization: Keeping the Math Stable
+While Residual Connections help the signal flow, **Layer Normalization (LayerNorm)** keeps that signal within a manageable range.
+
+For each token vector, LayerNorm finds the average and standard deviation of its elements, centers the data at 0 with a spread of 1, and applies trainable parameters ($\gamma$ and $\beta$) to allow the model to "re-adjust" if needed. It makes the model robust to different sequence lengths and prevents activations from "exploding."
 
 ---
 
 ## The "Thinking" Step: Position-Wise Feed-Forward Networks
 
-After the attention mechanism has allowed tokens to "communicate" with each other, they pass through a Feed-Forward Network (FFN). This is where the model does its "thinking."
+A common mistake is thinking that the Attention mechanism does all the work. In reality, Attention is only responsible for **Information Routing**—it moves information between tokens. The actual **Information Processing** (the "thinking") happens in the Position-Wise Feed-Forward Network (FFN).
 
-$$\text{FFN}(x) = \max(0, xW_1 + b_1)W_2 + b_2$$
+$$\text{FFN}(x) = \text{max}(0, xW_1 + b_1)W_2 + b_2$$
 
-Crucially, this FFN is applied to each token independently and identically. The attention layer captures relationships **between** tokens, while the FFN captures the nuances **within** each token's representation.
+### The Expanding-Contracting Pattern
+The FFN usually projects the vector up into a much higher-dimensional space (e.g., from 512 to 2048) and then contracts it back down. This allows the model to map the token's features into a space where it can find more complex patterns.
+
+> **Note:** The FFN is applied to every token in the sequence independently. There is no communication between tokens in this step; the FFN treats each word as its own separate problem to solve.
 
 ---
 
 ## Two Sides of the Same Coin: The Encoder vs. The Decoder
 
-The original Transformer is a dual-stream architecture:
+While they look similar, the Encoder and Decoder have fundamentally different philosophies and structural rules.
 
-### The Encoder
-Processes the input sequence (e.g., an English sentence). Its job is to produce a "Contextualized Embedding" where every word vector is aware of every other word vector.
+### The Encoder: The Global Observer
+The Encoder is "Bi-directional." For any token, it looks at the tokens to the left and to the right simultaneously to create a **Contextualized Embedding**.
+*Example: In "The bank of the river", the vector for "bank" is infused with the meaning of "river".*
 
 <p align="center">
   <img src="images/Encoder Diagram.png" alt="Encoder Diagram" width="600">
@@ -133,8 +142,11 @@ Processes the input sequence (e.g., an English sentence). Its job is to produce 
   <b>Fig 5: Encoder Diagram</b>
 </p>
 
-### The Decoder
-Generates the output (e.g., a French translation). It uses **Masked Self-Attention** to ensure that when it predicts the next word, it cannot "peek" at the words that come after it.
+### The Decoder: The Autoregressive Generator
+The Decoder is "Uni-directional" and Autoregressive. It generates one token at a time, using two unique mechanisms:
+
+1. **Masked Self-Attention**: During training, a look-ahead mask ensures the model cannot "peek" at future tokens.
+2. **Encoder-Decoder (Cross) Attention**: The Decoder "queries" the Encoder's output to find relevant information from the source text.
 
 <p align="center">
   <img src="images/Decoder Diagram.png" alt="Decoder Diagram" width="600">
@@ -147,6 +159,16 @@ Generates the output (e.g., a French translation). It uses **Masked Self-Attenti
   <br>
   <b>Fig 7: Linear and Softmax Layers</b>
 </p>
+
+---
+
+## Complexity and Scaling: The $O(n^2)$ Reality
+
+The self-attention mechanism has a computational complexity of $O(n^2 \cdot d)$.
+- $n$ = Sequence length
+- $d$ = Embedding dimension
+
+This means if you double the length of your input text, the computation quadruples. This is the **"Context Window"** limit seen in modern models. Understanding this bottleneck is the bridge to exploring how future architectures attempt to bypass this quadratic cost.
 
 ---
 
