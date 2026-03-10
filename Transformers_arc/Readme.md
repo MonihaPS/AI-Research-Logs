@@ -202,8 +202,6 @@ As we move forward, the "Attention" mechanism is proving to be a universal mathe
 - **The Illustrated Transformer**: [Jay Alammar's Visual Guide](https://jalammar.github.io/illustrated-transformer/)
 - **Implementation**: [The Annotated Transformer (Harvard NLP)](https://nlp.seas.harvard.edu/2018/04/03/attention.html)
 
-### About the Author
-**Moniha P S** is an AI Researcher at **Bluvern**, exploring the boundaries of transformer-based architectures and their applications in modern research.
 
 ---
 *Designed and documented for AI Research.*
