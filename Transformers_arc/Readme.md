@@ -95,9 +95,9 @@ By splitting our 512-dimensional space into multiple "heads", the model can atte
 If Self-Attention is the brain of the Transformer, Residual Connections and Layer Normalization are the nervous system and the skeletal structure. Without them, a 6-layer (or 175-billion parameter) model would be mathematically impossible to train.
 
 ### Residual Connections: The "Highway" for Gradients
-In deep neural networks, we face the Vanishing Gradient Problem. As we backpropagate through many layers, the gradient is multiplied repeatedly. If these values are even slightly less than 1, they shrink exponentially until the early layers of the model "stop learning."
+In deep neural networks, we face the Vanishing Gradient Problem. As we backpropagate through many layers, the gradient (the signal used to update weights) is multiplied repeatedly. If these values are even slightly less than 1, they shrink exponentially until the early layers of the model "stop learning" because their updates become effectively zero.
 
-The Transformer solves this using **Residual (or Skip) Connections**. For any sub-layer $f(x)$ (like Attention or FFN), the output is actually:
+The Transformer solves this using **Residual (or Skip) Connections**, originally popularized by ResNet. For any sub-layer $f(x)$ (like Attention or FFN), the output is actually:
 $$Output = x + f(x)$$
 
 <p align="center">
@@ -106,12 +106,18 @@ $$Output = x + f(x)$$
   <b>Fig 4: Residual Connections</b>
 </p>
 
-By adding the original input $x$ to the output of the function, we create a "shortcut" for the gradient. This allows us to stack dozens of layers while maintaining a strong training signal.
+By adding the original input $x$ to the output of the function, we create a "shortcut" for the gradient. During backpropagation, the gradient can flow through the $+x$ term directly to earlier layers without being distorted by the complex weights of the attention mechanism. This allows us to stack dozens of layers while maintaining a strong training signal.
 
 ### Layer Normalization: Keeping the Math Stable
 While Residual Connections help the signal flow, **Layer Normalization (LayerNorm)** keeps that signal within a manageable range.
 
-For each token vector, LayerNorm finds the average and standard deviation of its elements, centers the data at 0 with a spread of 1, and applies trainable parameters ($\gamma$ and $\beta$) to allow the model to "re-adjust" if needed. It makes the model robust to different sequence lengths and prevents activations from "exploding."
+Unlike Batch Normalization (common in CNNs), which calculates statistics across a "batch" of different images, LayerNorm calculates the mean ($\mu$) and variance ($\sigma$) across the embedding dimension of a single token.
+
+1.  **Calculate**: For each token vector, find the average and standard deviation of its elements.
+2.  **Normalize**: Subtract the mean and divide by the variance to center the data at 0 with a spread of 1.
+3.  **Scale and Shift**: Apply two trainable parameters, $\gamma$ (gamma) and $\beta$ (beta), to allow the model to "re-adjust" the normalization if it needs to.
+
+> **Why LayerNorm?** It makes the model robust to different sequence lengths and ensures that the activations at each layer don't "explode" into massive numbers that would break the Softmax calculation.
 
 ---
 
@@ -119,22 +125,26 @@ For each token vector, LayerNorm finds the average and standard deviation of its
 
 A common mistake is thinking that the Attention mechanism does all the work. In reality, Attention is only responsible for **Information Routing**—it moves information between tokens. The actual **Information Processing** (the "thinking") happens in the Position-Wise Feed-Forward Network (FFN).
 
+Every encoder and decoder layer contains an FFN. It consists of two linear transformations with a non-linear activation (usually ReLU or GELU) in between:
 $$\text{FFN}(x) = \text{max}(0, xW_1 + b_1)W_2 + b_2$$
 
 ### The Expanding-Contracting Pattern
-The FFN usually projects the vector up into a much higher-dimensional space (e.g., from 512 to 2048) and then contracts it back down. This allows the model to map the token's features into a space where it can find more complex patterns.
+The FFN usually follows an "expansion" strategy. If your model dimension ($d_{model}$) is 512, the first linear layer typically projects that vector up into a much higher-dimensional space (usually 2048).
 
-> **Note:** The FFN is applied to every token in the sequence independently. There is no communication between tokens in this step; the FFN treats each word as its own separate problem to solve.
+-   **The Expansion**: Going from 512 to 2048 allows the model to map the token's features into a higher-dimensional space where it can find more complex patterns.
+-   **The Contraction**: The second layer projects it back down to 512 so it can be passed into the next Transformer block.
+
+> **Why is it called "Position-Wise"?** Because the exact same FFN (with the same weights $W_1, W_2$) is applied to every token in the sequence independently. There is no communication between tokens in this step; the FFN treats each word as its own separate problem to solve.
 
 ---
 
-## Two Sides of the Same Coin: The Encoder vs. The Decoder
+## The Encoder vs. The Decoder: A Tale of Two Streams
 
 While they look similar, the Encoder and Decoder have fundamentally different philosophies and structural rules.
 
 ### The Encoder: The Global Observer
-The Encoder is "Bi-directional." For any token, it looks at the tokens to the left and to the right simultaneously to create a **Contextualized Embedding**.
-*Example: In "The bank of the river", the vector for "bank" is infused with the meaning of "river".*
+The Encoder is "Bi-directional." For any token (like "Bank"), the Encoder looks at the tokens to the left and to the right simultaneously. Its goal is to create a "**Contextualized Embedding**"—a mathematical representation of a word that changes based on its surroundings.
+*Example: In "The bank of the river," the vector for "bank" is infused with the meaning of "river."*
 
 <p align="center">
   <img src="images/Encoder Diagram.png" alt="Encoder Diagram" width="600">
@@ -143,16 +153,23 @@ The Encoder is "Bi-directional." For any token, it looks at the tokens to the le
 </p>
 
 ### The Decoder: The Autoregressive Generator
-The Decoder is "Uni-directional" and Autoregressive. It generates one token at a time, using two unique mechanisms:
+The Decoder is "Uni-directional" and Autoregressive. It generates one token at a time, and every token it generates becomes part of the input for the next step. To achieve this, it uses two unique mechanisms:
 
-1. **Masked Self-Attention**: During training, a look-ahead mask ensures the model cannot "peek" at future tokens.
-2. **Encoder-Decoder (Cross) Attention**: The Decoder "queries" the Encoder's output to find relevant information from the source text.
+#### 1. Masked Self-Attention
+In the Encoder, word 1 can see word 10. In the Decoder, this is forbidden during training. If the model is trying to predict the 3rd word in a translation, it shouldn't be allowed to "see" the 4th word in the ground truth. We apply a **Look-Ahead Mask** (a matrix of $-\infty$) to the attention scores, effectively "blinding" the model to the future.
 
 <p align="center">
   <img src="images/Decoder Diagram.png" alt="Decoder Diagram" width="600">
   <br>
   <b>Fig 6: Decoder Diagram</b>
 </p>
+
+#### 2. Encoder-Decoder (Cross) Attention
+This is the bridge between the two streams. In this layer:
+- **Queries (Q)** come from the Decoder (What is the next word I need to write?).
+- **Keys (K)** and **Values (V)** come from the Encoder's final output (What did the original English sentence actually say?).
+
+This allows the Decoder to "reach back" and focus on specific parts of the input sentence (the Encoder's output) as it generates each new word in the output sentence.
 
 <p align="center">
   <img src="images/Linear and Softmax.png" alt="Linear and Softmax" width="600">
@@ -168,7 +185,7 @@ The self-attention mechanism has a computational complexity of $O(n^2 \cdot d)$.
 - $n$ = Sequence length
 - $d$ = Embedding dimension
 
-This means if you double the length of your input text, the computation quadruples. This is the **"Context Window"** limit seen in modern models. Understanding this bottleneck is the bridge to exploring how future architectures attempt to bypass this quadratic cost.
+This means if you double the length of your input text, the computation quadruples. This is the **"Context Window"** limit seen in modern models like GPT-4. Understanding this bottleneck is the bridge to exploring how future architectures attempt to bypass this quadratic cost.
 
 ---
 
