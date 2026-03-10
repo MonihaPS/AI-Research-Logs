@@ -62,12 +62,10 @@ The original transformer contains:
 - **Decoder Stack**: Generates the output sequence.
 
 <p align="center">
-  <img src="images/Architecture Pipeline.png" alt="Architecture Pipeline" width="800">
+  <img src="images/Architecture Pipeline.png" alt="Architecture Pipeline" width="600">
   <br>
-  <b>Architecture Pipeline</b>
+  <b>Fig 1: Architecture Pipeline</b>
 </p>
-
-Each stack contains multiple identical layers.
 
 ---
 
@@ -161,6 +159,19 @@ $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)
 3. **Normalize**: Apply Softmax
 4. **Aggregate**: Weighted value sum
 
+<p align="center">
+  <img src="images/Self Attention.png" alt="Self Attention" width="600">
+  <br>
+  <b>Fig 2: Self Attention Mechanism</b>
+</p>
+
+<p align="center">
+  <img src="images/Softmax.png" alt="Softmax" width="600">
+  <br>
+  <b>Fig 3: Softmax Normalization</b>
+</p>
+
+
 ---
 
 ## 8. Multi Head Attention
@@ -188,9 +199,9 @@ $$y = \text{LayerNorm}(x + \text{Attention}(x))$$
 - Prevents vanishing gradients
 
 <p align="center">
-  <img src="images/Residual Diagram.png" alt="Residual Diagram" width="800">
+  <img src="images/Residual Diagram.png" alt="Residual Diagram" width="600">
   <br>
-  <b>Residual Diagram</b>
+  <b>Fig 4: Residual Connections</b>
 </p>
 
 ---
@@ -220,9 +231,9 @@ Each encoder layer contains:
 4. Add & Norm
 
 <p align="center">
-  <img src="images/Encoder Diagram.png" alt="Encoder Diagram" width="800">
+  <img src="images/Encoder Diagram.png" alt="Encoder Diagram" width="600">
   <br>
-  <b>Encoder Diagram</b>
+  <b>Fig 5: Encoder Diagram</b>
 </p>
 
 ---
@@ -235,9 +246,15 @@ The decoder includes **Masked Attention**, which prevents the model from seeing 
 - Hidden: "machine learning" (The model cannot see these yet)
 
 <p align="center">
-  <img src="images/Decoder Diagram.png" alt="Decoder Diagram" width="800">
+  <img src="images/Decoder Diagram.png" alt="Decoder Diagram" width="600">
   <br>
-  <b>Decoder Diagram</b>
+  <b>Fig 6: Decoder Diagram</b>
+</p>
+
+<p align="center">
+  <img src="images/Linear and Softmax.png" alt="Linear and Softmax" width="600">
+  <br>
+  <b>Fig 7: Linear and Softmax Layers</b>
 </p>
 
 ---
@@ -246,9 +263,9 @@ The decoder includes **Masked Attention**, which prevents the model from seeing 
 The training process involves a loop of forward passes, loss calculation, and backpropagation.
 
 <p align="center">
-  <img src="images/Transformer Training Pipeline.png" alt="Transformer Training Pipeline" width="800">
+  <img src="images/Transformer Training Pipeline.png" alt="Transformer Training Pipeline" width="600">
   <br>
-  <b>Transformer Training Pipeline</b>
+  <b>Fig 8: Transformer Training Pipeline</b>
 </p>
 
 ### PyTorch Setup
@@ -309,5 +326,7 @@ Where $N$ is the number of parameters and $\alpha \approx 0.05 - 0.1$.
 
 ### Author
 Moniha P S
+
 Bluvern
+
 Designed and documented for AI Research.
