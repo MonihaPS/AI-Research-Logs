@@ -172,7 +172,7 @@ The masking mechanism ensures that during training and inference, the model pred
 <p align="center">
   <img src="images/GPTarch.png" alt="GPT Architecture" width="500">
   <br>
-  <b>Fig 3: GPT models use a decoder-only transformer architecture designed for autoregressive text generation ([Source: OpenAI](https://openai.com/research/language-unsupervised)).</b>
+  <b>Fig 3: GPT models use a decoder-only transformer architecture designed for autoregressive text generation ([Source: ArXiv](https://arxiv.org/abs/2305.10435)).</b>
 </p>
 
 ### Key Innovation
@@ -228,7 +228,7 @@ Instead of relying solely on internal parameters, the model retrieves similar te
 ### RETRO architecture diagram:
 
 <p align="center">
-  <img src="images/RetroArch.png" alt="RETRO Architecture" width="500">
+  <img src="images/RetroArch.png" alt="RETRO Architecture" width="700" height="250">
   <br>
   <b>Fig 4: RETRO combines transformer-based language modeling with retrieval from an external database ([Source: ArXiv](https://arxiv.org/abs/2112.04426)).</b>
 </p>
