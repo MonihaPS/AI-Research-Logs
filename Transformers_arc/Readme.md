@@ -6,9 +6,9 @@ In 2017, the landscape of Artificial Intelligence shifted on its axis. A group o
 Today, this architecture isn't just a model; it is the fundamental building block of the modern world. It is the "engine" inside ChatGPT, the "eyes" of Vision Transformers, and the "logic" behind AlphaFold. To truly understand how modern AI works, we must deconstruct the Transformer from the ground up—not just as a list of components, but as a masterpiece of mathematical engineering.
 
 <p align="center">
-  <img src="images/Architecture Pipeline.png" alt="Architecture Pipeline" width="600">
+  <img src="images/Architecture Pipeline.png" alt="Architecture Pipeline" width="300">
   <br>
-  <b>Fig 1: Architecture Pipeline</b>
+  <b>Fig 1: The original Transformer architecture introduced in "Attention Is All You Need" ([Source: ArXiv](https://arxiv.org/abs/1706.03762)), which forms the foundation of modern large language models.</b>
 </p>
 
 ---
@@ -83,9 +83,9 @@ $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)
 4. **Aggregate**: Weighted value sum
 
 <p align="center">
-  <img src="images/Self Attention.png" alt="Self Attention" width="600">
+  <img src="images/Self Attention.png" alt="Self Attention" width="300">
   <br>
-  <b>Fig 2: Self Attention Mechanism</b>
+  <b>Fig 2: Scaled Dot-Product Attention mechanism showing the interaction between Query, Key, and Value vectors ([Source: The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)).</b>
 </p>
 
 ---
@@ -112,9 +112,9 @@ $$\text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)$$
 Softmax converts similarity scores into a probability distribution. These probabilities are then used to weight the Value vectors (V). So the final output becomes a weighted combination of token information.
 
 <p align="center">
-  <img src="images/Softmax.png" alt="Softmax" width="600">
+  <img src="images/Softmax.png" alt="Softmax" width="400">
   <br>
-  <b>Fig 3: Softmax Normalization</b>
+  <b>Fig 3: Softmax Normalization process, converting raw attention scores into a probability distribution ([Source: The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)).</b>
 </p>
 
 ---
@@ -129,9 +129,9 @@ By splitting our 512-dimensional space into multiple "heads", the model can atte
 - **Head 3** might track the relationship between pronouns and their antecedents.
 
 <p align="center">
-  <img src="images/Multi-Head_Attention.png" alt="Multi-Head Attention" width="350">
+  <img src="images/Multi-Head_Attention.png" alt="Multi-Head Attention" width=200">
   <br>
-  <b>Fig 4: Multi-Head Attention Mechanism</b>
+  <b>Fig 4: Multi-Head Attention Mechanism, allowing the model to attend to information from different representation subspaces ([Source: ArXiv](https://arxiv.org/abs/1706.03762)).</b>
 </p>
 
 ---
@@ -147,9 +147,9 @@ The Transformer solves this using **Residual (or Skip) Connections**, originally
 $$Output = x + f(x)$$
 
 <p align="center">
-  <img src="images/Residual Diagram.png" alt="Residual Diagram" width="600">
+  <img src="images/Residual Diagram.png" alt="Residual Diagram" width="400">
   <br>
-  <b>Fig 5: Residual Connections</b>
+  <b>Fig 5: Residual Connections (Skip Connections) that facilitate gradient flow in deep networks ([Source: The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)).</b>
 </p>
 
 By adding the original input $x$ to the output of the function, we create a "shortcut" for the gradient. During backpropagation, the gradient can flow through the $+x$ term directly to earlier layers without being distorted by the complex weights of the attention mechanism. This allows us to stack dozens of layers while maintaining a strong training signal.
@@ -193,9 +193,9 @@ The Encoder is "Bi-directional." For any token (like "Bank"), the Encoder looks 
 *Example: In "The bank of the river," the vector for "bank" is infused with the meaning of "river."*
 
 <p align="center">
-  <img src="images/Encoder Diagram.png" alt="Encoder Diagram" width="600">
+  <img src="images/Encoder Diagram.png" alt="Encoder Diagram" width="400">
   <br>
-  <b>Fig 6: Encoder Diagram</b>
+  <b>Fig 6: The Encoder stack, responsible for generating contextualized representations of the input sequence ([Source: The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)).</b>
 </p>
 
 ### The Decoder: The Autoregressive Generator
@@ -205,9 +205,9 @@ The Decoder is "Uni-directional" and Autoregressive. It generates one token at a
 In the Encoder, word 1 can see word 10. In the Decoder, this is forbidden during training. If the model is trying to predict the 3rd word in a translation, it shouldn't be allowed to "see" the 4th word in the ground truth. We apply a **Look-Ahead Mask** (a matrix of $-\infty$) to the attention scores, effectively "blinding" the model to the future.
 
 <p align="center">
-  <img src="images/Decoder Diagram.png" alt="Decoder Diagram" width="600">
+  <img src="images/Decoder Diagram.png" alt="Decoder Diagram" width="400">
   <br>
-  <b>Fig 7: Decoder Diagram</b>
+  <b>Fig 7: The Decoder stack, which generates output tokens one by one using masked self-attention and cross-attention ([Source: The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)).</b>
 </p>
 
 #### 2. Encoder-Decoder (Cross) Attention
@@ -218,9 +218,9 @@ This is the bridge between the two streams. In this layer:
 This allows the Decoder to "reach back" and focus on specific parts of the input sentence (the Encoder's output) as it generates each new word in the output sentence.
 
 <p align="center">
-  <img src="images/Linear and Softmax.png" alt="Linear and Softmax" width="600">
+  <img src="images/Linear and Softmax.png" alt="Linear and Softmax" width="400">
   <br>
-  <b>Fig 8: Linear and Softmax Layers</b>
+  <b>Fig 8: Final Linear and Softmax layers that project the decoder output into the vocabulary space ([Source: The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)).</b>
 </p>
 
 ---
