@@ -1,4 +1,4 @@
-# Beyond the Transformer: How Modern LLMs Like DeepSeek, GPT, Grok, and Mamba Evolve the Architecture
+# Beyond the Transformer: How Modern LLMs Like DeepSeek, GPT, Retro, and Mamba Evolve the Architecture
 
 ## Introduction
 
