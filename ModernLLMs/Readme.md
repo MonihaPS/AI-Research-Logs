@@ -12,13 +12,13 @@ As models scaled to billions or even trillions of parameters, researchers encoun
 
 As a result, modern AI systems have evolved beyond the basic transformer design in multiple directions.
 
-Some models, such as GPT, scale dense transformer architectures to massive sizes. Others, like DeepSeek, introduce Mixture-of-Experts routing to activate only a subset of parameters during computation. Systems such as Grok focus on optimizing infrastructure and inference pipelines to support real-time reasoning at scale. Meanwhile, newer architectures like Mamba explore entirely different approaches to sequence modeling that move beyond attention mechanisms.
+Some models, such as GPT, scale dense transformer architectures to massive sizes. Others, like DeepSeek, introduce Mixture-of-Experts routing to activate only a subset of parameters during computation. Architectures such as RETRO incorporate retrieval mechanisms that allow models to access external knowledge instead of storing all information within parameters. Meanwhile, newer architectures like Mamba explore entirely different approaches to sequence modeling that move beyond attention mechanisms.
 
 These developments highlight an important insight:
 
 > Understanding the basic transformer architecture is only the first step. Modern large language models build on top of transformers — and sometimes move beyond them — to achieve better scalability, efficiency, and performance.
 
-In this article, we explore how modern language models evolve from the original transformer design. We begin with a brief recap of the transformer architecture and its limitations, and then examine how different systems such as GPT, DeepSeek, Grok, and Mamba address these challenges through distinct architectural innovations.
+In this article, we explore how modern language models evolve from the original transformer design. We begin with a brief recap of the transformer architecture and its limitations, and then examine how different systems such as GPT, DeepSeek, RETRO, and Mamba address these challenges through distinct architectural innovations.
 
 ---
 
@@ -56,7 +56,7 @@ Both components are built from stacked layers that include:
 <p align="center">
   <img src="images/TransformerArch.png" alt="Transformer Architecture" width="300">
   <br>
-  <b>Fig 1: The original Transformer architecture introduced in Attention Is All You Need, which forms the foundation of modern large language models.</b>
+  <b>Fig 1: The original Transformer architecture introduced in "Attention Is All You Need" ([Source: ArXiv](https://arxiv.org/abs/1706.03762)), which forms the foundation of modern large language models.</b>
 </p>
 
 ---
@@ -110,7 +110,7 @@ Instead of activating all expert networks, the router selects only a few experts
 <p align="center">
   <img src="images/DeepseekArch.png" alt="DeepSeek Architecture" width="500">
   <br>
-  <b>Fig 2: Mixture-of-Experts routing allows the model to activate only a subset of specialized networks for each input token.</b>
+  <b>Fig 2: Mixture-of-Experts routing in DeepSeek allows the model to activate only a subset of specialized networks ([Source: ArXiv](https://arxiv.org/abs/2412.19437)).</b>
 </p>
 
 ### Key Innovation
@@ -172,7 +172,7 @@ The masking mechanism ensures that during training and inference, the model pred
 <p align="center">
   <img src="images/GPTarch.png" alt="GPT Architecture" width="500">
   <br>
-  <b>Fig 3: GPT models use a decoder-only transformer architecture designed for autoregressive text generation.</b>
+  <b>Fig 3: GPT models use a decoder-only transformer architecture designed for autoregressive text generation ([Source: OpenAI](https://openai.com/research/language-unsupervised)).</b>
 </p>
 
 ### Key Innovation
@@ -197,66 +197,59 @@ This approach fundamentally changed how AI systems are developed. Instead of bui
 
 The success of GPT established the dense transformer scaling paradigm, showing that increasing model size and training data can lead to dramatic improvements in language understanding and generation.
 
-## Grok
+## RETRO
 
 ### Overview
 
-Grok is a large language model developed by xAI. It was designed to compete with leading LLMs by combining large-scale transformer architectures with system-level optimizations for reasoning and real-time data access.
+RETRO is a large language model architecture developed by DeepMind that introduces retrieval-based learning into transformer models. Instead of relying only on parameters to store knowledge, RETRO retrieves relevant information from an external database during inference.
 
-Unlike many traditional language models that rely purely on static training data, Grok is tightly integrated with the social platform X (formerly Twitter), allowing it to access and analyze real-time information streams. This enables Grok to provide more up-to-date responses compared to models trained only on historical datasets.
+This approach allows the model to access a massive knowledge base without needing extremely large parameter counts. By combining transformers with retrieval mechanisms, RETRO demonstrates a new direction for scaling language models efficiently.
 
 ### Architecture
 
-At its core, Grok is built on a transformer-based architecture similar to other large language models, but it includes several modifications designed to improve reasoning, scalability, and deployment efficiency.
+RETRO is built on a transformer architecture but integrates a retrieval module that searches a large external database for relevant information related to the input tokens.
 
-A simplified architecture pipeline can be described as:
+A simplified architecture pipeline can be represented as:
 
 > **Input Tokens**  
 > ↓  
-> **Token Embedding + Positional Encoding**  
+> **Token Embedding**  
 > ↓  
-> **Stacked Transformer Layers**  
+> **Retriever Module**  
 > ↓  
-> **Reasoning / Optimization Modules**  
+> **External Database (Nearest Neighbor Search)**  
+> ↓  
+> **Transformer Layers**  
 > ↓  
 > **Output Generation**
 
-The transformer layers use multi-head self-attention to capture relationships between tokens, similar to GPT-style models. However, Grok introduces additional optimizations in its training pipeline and inference infrastructure to handle long-context reasoning and real-time interaction workloads.
+Instead of relying solely on internal parameters, the model retrieves similar text chunks from a large dataset and incorporates them into the transformer processing pipeline.
 
-### Transformer-based LLM architecture:
+### RETRO architecture diagram:
 
 <p align="center">
-  <img src="images/GrokArch.png" alt="Grok Architecture" width="200">
+  <img src="images/RetroArch.png" alt="RETRO Architecture" width="500">
   <br>
-  <b>Fig 4: Grok builds upon transformer-based language model architectures with additional optimizations for reasoning and real-time interaction.</b>
+  <b>Fig 4: RETRO combines transformer-based language modeling with retrieval from an external database ([Source: ArXiv](https://arxiv.org/abs/2112.04426)).</b>
 </p>
 
 ### Key Innovation
 
-The key innovation of Grok lies not only in its model architecture but also in its system-level design and deployment strategy.
+The key innovation of RETRO is retrieval-augmented generation.
 
-Important innovations include:
+Traditional transformers store knowledge directly in their parameters. As models grow larger, storing all knowledge internally requires enormous parameter counts and computational resources.
 
-- **Real-time data integration** with sources from the X platform
-- **Large-scale training** using massive GPU clusters
-- **Reinforcement learning techniques** to improve reasoning and instruction following
+RETRO addresses this limitation by introducing a retrieval mechanism that allows the model to search an external knowledge database and incorporate relevant information during generation.
 
-For example, Grok models have been trained using extremely large computing clusters to improve reasoning ability and handle complex tasks such as mathematics, coding, and multi-step problem solving.
-
-These features allow Grok to function as a reasoning-oriented LLM designed for interactive environments.
+This means that instead of memorizing all information, the model can look up relevant context dynamically, significantly reducing the need for extremely large parameter sizes.
 
 ### Why It Matters
 
-Grok highlights an important trend in modern AI development: large language models are no longer defined only by their neural architecture.
+RETRO represents an important shift in how large language models can scale. Rather than increasing model size indefinitely, retrieval-based architectures allow models to leverage external knowledge sources to improve accuracy and efficiency.
 
-While transformers remain the core modeling technique, real-world AI systems increasingly rely on:
+This approach reduces the need for massive parameter counts while still enabling the model to access large amounts of information. As a result, retrieval-based architectures have become an important direction in modern LLM research.
 
-- **Large-scale infrastructure**
-- **Reinforcement learning pipelines**
-- **Real-time data integration**
-- **Optimized inference systems**
-
-This demonstrates that the power of modern LLMs comes not only from the transformer architecture itself, but also from how the architecture is trained, scaled, and integrated into real-world systems.
+RETRO demonstrates that combining transformers with external knowledge retrieval can create powerful language models that are both efficient and scalable.
 
 ## Mamba
 
@@ -289,7 +282,7 @@ The key idea is that the model maintains a running internal state that summarize
 <p align="center">
   <img src="images/MambaMainArch.png" alt="Mamba Architecture" width="500">
   <br>
-  <b>Fig 5: The Mamba architecture replaces attention with selective state-space layers that update a continuous hidden state across tokens.</b>
+  <b>Fig 5: The Mamba architecture replaces attention with selective state-space layers that update a continuous hidden state ([Source: ArXiv](https://arxiv.org/abs/2312.00752)).</b>
 </p>
 
 ### Key Innovation
@@ -320,9 +313,9 @@ This architecture highlights an important idea in modern AI research: while tran
 
 ## Architecture Comparison
 
-After examining the transformer foundation and the architectures of DeepSeek, GPT, Grok, and Mamba, we can now compare how these models evolve the original design in different ways.
+After examining the transformer foundation and the architectures of DeepSeek, GPT, RETRO, and Mamba, we can now compare how these models evolve the original design in different ways.
 
-The key idea to observe is that each model addresses a different limitation of the baseline transformer architecture-whether it is scalability, computational efficiency, deployment infrastructure, or sequence modeling itself.
+The key idea to observe is that each model addresses a different limitation of the baseline transformer architecture—whether it is scalability, computational efficiency, knowledge access, or sequence modeling itself.
 
 ### Comparative Analysis of Architectures
 
@@ -331,8 +324,10 @@ The key idea to observe is that each model addresses a different limitation of t
 | **Transformer (Baseline)** | Encoder–Decoder Transformer | Dense | Self-attention mechanism for contextual modeling | $O(n^2)$ attention | Parallel sequence processing, strong contextual learning | High memory and compute cost for long sequences |
 | **GPT** | Decoder-only Transformer | Dense | Autoregressive language modeling with large-scale pretraining | $O(n^2)$ attention | Excellent text generation, general-purpose LLM capability | Expensive training and inference at large scale |
 | **DeepSeek** | Transformer + Mixture-of-Experts | Sparse | Expert routing activates only a subset of parameters | Reduced active compute vs dense models | Efficient scaling to extremely large parameter counts | More complex training and routing mechanisms |
-| **Grok** | Optimized Transformer-based LLM | Dense (system optimized) | Real-time data integration and infrastructure optimization | $O(n^2)$ attention | Strong reasoning capability with real-time interaction | Requires large-scale compute infrastructure |
+| **RETRO** | Retrieval-Augmented Transformer | Hybrid (retrieval + dense) | External knowledge retrieval integrated with transformer layers | $O(n^2)$ attention + retrieval cost | Access to large external knowledge without massive parameter scaling | Requires large external databases and retrieval infrastructure |
 | **Mamba** | State Space Model (SSM) | Sequential state modeling | Selective state-space mechanism replacing attention | $O(n)$ sequence complexity | Efficient long-context processing and lower memory usage | Still relatively new with limited large-scale deployment |
+
+---
 
 ## Conclusion
 
@@ -340,11 +335,12 @@ The transformer architecture marked a major breakthrough in AI by introducing se
 
 However, the basic transformer design is only the starting point. As models scale, researchers have introduced new ideas to improve efficiency, scalability, and real-world performance.
 
-Models like DeepSeek use Mixture-of-Experts for efficient scaling, GPT demonstrates the power of scaling dense transformers, Grok focuses on infrastructure and real-time reasoning, while Mamba explores sequence modeling beyond attention.
+Models like **DeepSeek** use Mixture-of-Experts for efficient scaling, **GPT** demonstrates the power of scaling dense transformers, **RETRO** introduces retrieval-based architectures that access external knowledge sources, while **Mamba** explores sequence modeling beyond attention.
 
 These developments show that simply understanding the basic transformer architecture is not enough. The real power of modern LLMs comes from how this foundation is extended and implemented in advanced architectures.
 
 For anyone exploring large language models, learning how these systems build upon the transformer architecture is key to understanding the future of AI.
 
 ---
+
 *Designed and documented for Modern AI Research.*
